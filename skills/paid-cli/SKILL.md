@@ -41,7 +41,6 @@ cat customer.json | npx @paid-ai/cli customer create --stdin
 
 ## Safety
 
-- Never print or commit Paid API keys.
 - Prefer sandbox/local profiles unless the user clearly asks for production.
 - Confirm before running destructive commands or commands that affect billing state.
 - If the CLI returns an API error, inspect the JSON response and report the actionable validation details.

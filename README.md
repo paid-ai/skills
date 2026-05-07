@@ -18,4 +18,4 @@ npx skills add paid-ai/skills --skill paid-cli --copy
 
 ## Skills
 
-- `paid-cli`: Helps agents use `npx @paid-ai/cli` safely, inspect environments, discover commands, and avoid exposing API keys.
+- `paid-cli`: Helps agents use `npx @paid-ai/cli` safely, inspect environments, and discover commands.
