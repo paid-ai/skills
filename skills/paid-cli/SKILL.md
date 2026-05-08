@@ -5,7 +5,7 @@ description: Use when working with the Paid CLI or Paid API from an agent. Helps
 
 # Paid CLI
 
-Use the Paid CLI for Paid API resource work from the terminal. Prefer `npx @paid-ai/cli` unless the project already has a local `paid` binary.
+Use the Paid CLI for Paid API resource work from the terminal. Prefer `npx @paid-ai/cli`.
 
 ## Workflow
 
