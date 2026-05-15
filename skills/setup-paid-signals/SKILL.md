@@ -1,9 +1,9 @@
 ---
-name: setup-paid
-description: Skill for integrating Paid - the all-in-one business engine for AI agents handling pricing, billing, and usage tracking.
+name: setup-paid-signals
+description: Skill for setting up Paid signals and tracing — autoinstrumentation, manual tracing, and framework-specific setup for Node.js, Next.js, and Python.
 ---
 
-# Paid Integration Guide
+# Paid Signals & Tracing Guide
 
 **Always consult [docs.paid.ai](https://docs.paid.ai) for code examples and latest API.**
 
@@ -343,118 +343,6 @@ paid checkout list                                        # List checkouts
 ```
 
 All commands accept `--file <path>` to read JSON body from a file or `--stdin` to pipe JSON.
-
----
-
-## Checkout
-
-Create checkout sessions programmatically to collect payments. When a customer completes checkout, Paid creates an order (subscription) that tracks their plan, billing cycle, and usage over time.
-
-**Prerequisites:**
-- A Product ID from the [Products dashboard](https://app.paid.ai/products) or via the API
-- [Stripe connected](https://app.paid.ai/settings/billing) (use Stripe sandbox for test mode)
-
-### Creating a Session
-
-```typescript
-const client = new PaidClient({ token: "YOUR_PAID_API_KEY" });
-
-const checkout = await client.checkouts.createCheckout({
-  products: [{ id: "prod_abc123" }],
-  externalCustomerId: currentUser.id,
-  successUrl: "https://example.com/success?checkout_id={CHECKOUT_ID}",
-});
-
-// Redirect your customer to this URL
-redirect(checkout.body.url);
-```
-
-```python
-from paid import Paid
-
-client = Paid(token="YOUR_PAID_API_KEY")
-
-checkout = client.checkouts.create_checkout(
-    products=[{"id": "prod_abc123"}],
-    external_customer_id=current_user.id,
-    success_url="https://example.com/success?checkout_id={CHECKOUT_ID}",
-)
-
-# Redirect your customer to this URL
-redirect(checkout.url)
-```
-
-The `{CHECKOUT_ID}` placeholder in `successUrl` is automatically replaced with the checkout's display ID (e.g. `chk_abc123`).
-
-### Handling the Return
-
-After payment, verify the checkout before provisioning access. Check that status is `completed` **and** that `externalCustomerId` matches the authenticated user.
-
-```typescript
-const checkoutId = req.query.checkout_id;
-const checkout = await client.checkouts.getCheckout(checkoutId);
-
-if (
-  checkout.body.status === "completed" &&
-  checkout.body.externalCustomerId === currentUser.id
-) {
-  await provisionUserAccess(currentUser.id);
-} else {
-  showErrorMessage();
-}
-```
-
-```python
-checkout_id = request.args.get("checkout_id")
-checkout = client.checkouts.get_checkout(checkout_id)
-
-if (
-    checkout.status == "completed"
-    and checkout.external_customer_id == current_user.id
-):
-    provision_user_access(current_user.id)
-else:
-    show_error_message()
-```
-
-### Identifying the Customer
-
-| Method | When to use |
-|--------|-------------|
-| `externalCustomerId` (recommended) | Pass your own user ID/UUID/email. Paid auto-creates on first checkout, resolves to existing on subsequent ones |
-| `customerId` | Reference an existing Paid customer by their `cus_...` ID |
-| Anonymous (omit both) | Public pricing pages — checkout collects name and email |
-
-Only one of `customerId` or `externalCustomerId` may be provided.
-
-### Multiple Products
-
-Pass several products in a single session. If a product has plan tiers, the customer picks one during checkout.
-
-```typescript
-const checkout = await client.checkouts.createCheckout({
-  products: [
-    { id: "prod_platform" },
-    { id: "prod_addon_storage" },
-  ],
-  successUrl: "https://example.com/success",
-});
-```
-
-### Automatic Upgrades
-
-If the `externalCustomerId` already has an active order for the product, Paid automatically handles the upgrade with proration. The same API call works for both new purchases and plan changes.
-
-### Checkout Options
-
-| Option | Default | Notes |
-|--------|---------|-------|
-| `expiresAt` | 24 hours | ISO 8601 timestamp to override default expiration |
-| `singleUse` | `true` | Set `false` for reusable links (e.g. public pricing pages) |
-| `currency` | Any supported | Lock to a specific currency (e.g. `"GBP"`) |
-| `collectAddress` | `true` | Required for tax calculation |
-| `collectPhone` | `false` | Optionally collect phone number |
-| `metadata` | — | Arbitrary key-value pairs for your own tracking (not shown to customer) |
 
 ---
 

@@ -8,17 +8,20 @@ Install a skill with:
 
 ```bash
 npx skills add paid-ai/skills --skill paid-cli
-npx skills add paid-ai/skills --skill setup-paid
+npx skills add paid-ai/skills --skill setup-paid-signals
+npx skills add paid-ai/skills --skill setup-paid-checkout
 ```
 
 To install files instead of symlinks:
 
 ```bash
 npx skills add paid-ai/skills --skill paid-cli --copy
-npx skills add paid-ai/skills --skill setup-paid --copy
+npx skills add paid-ai/skills --skill setup-paid-signals --copy
+npx skills add paid-ai/skills --skill setup-paid-checkout --copy
 ```
 
 ## Skills
 
 - `paid-cli`: Helps agents use `npx @paid-ai/cli` safely, inspect environments, and discover commands.
-- `setup-paid`: Guides agents through integrating Paid — the all-in-one business engine for AI agents handling pricing, billing, and usage tracking.
+- `setup-paid-signals`: Sets up Paid signals and tracing — autoinstrumentation, manual tracing, and framework-specific setup for Node.js, Next.js, and Python.
+- `setup-paid-checkout`: Sets up Paid checkout — create sessions, handle payment returns, identify customers, and configure checkout options.
