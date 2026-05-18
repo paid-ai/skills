@@ -324,7 +324,7 @@ paid customer get-external --external-id <CUSTOMER_ID>          # Get by externa
 ### Signals
 
 ```bash
-paid signal create-bulk '{"signals": [{"event_name": "chat_completion"}, {"event_name": "web_search"}]}'
+paid signal create-bulk '{"signals": [{"event_name": "chat_completion", "customer": {"externalCustomerId": "cust-123"}}, {"event_name": "web_search", "customer": {"externalCustomerId": "cust-123"}}]}'
 ```
 
 ### Pricing
@@ -380,6 +380,9 @@ All commands accept `--file <path>` to read JSON body from a file or `--stdin` t
 8. **Idempotent customers** — Customers are idempotent by External ID
 9. **Vercel AI SDK** — Pass `experimental_telemetry: { isEnabled: true }` for cost data
 10. **Python threading** — Call `initialize_tracing()` from the main thread first
+11. **Signals don't auto-create pricing** — Sending signals registers event names and auto-creates customers, but does not generate product attributes or pricing. Products and pricing must be configured via the [product creation API](https://docs.paid.ai/api-reference/api-reference/products/create-product)
+12. **Signal bulk create needs nested customer** — Use `{ customer: { externalCustomerId: "..." } }`, not `{ externalCustomerId: "..." }` at the top level.
+13. **Use the latest SDK version** — Always install the latest version of `@paid-ai/paid-node` or `paid-python` to avoid missing features or bug fixes
 
 ---
 

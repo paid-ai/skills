@@ -60,7 +60,7 @@ After payment, verify the checkout before provisioning access. Check that status
 
 ```typescript
 const checkoutId = req.query.checkout_id;
-const checkout = await client.checkouts.getCheckout(checkoutId);
+const checkout = await client.checkouts.getCheckout({ id: checkoutId });
 
 if (
   checkout.body.status === "completed" &&
@@ -74,7 +74,7 @@ if (
 
 ```python
 checkout_id = request.args.get("checkout_id")
-checkout = client.checkouts.get_checkout(checkout_id)
+checkout = client.checkouts.get_checkout(id=checkout_id)
 
 if (
     checkout.status == "completed"
@@ -284,6 +284,8 @@ checkout = client.checkouts.create_checkout(
 3. **One customer identifier** — Only one of `customerId` or `externalCustomerId` may be provided
 4. **Automatic upgrades** — Same API call handles new purchases and plan changes when using `externalCustomerId`
 5. **Never hardcode API keys** — Use environment variables or `paid init`
+6. **`getCheckout` takes an object** — Pass `{ id: "chk_..." }`, not a bare string. In Python use `get_checkout(id=checkout_id)`
+7. **Use the latest SDK version** — Always install the latest version of `@paid-ai/paid-node` or `paid-python` to avoid missing features or bug fixes
 
 ---
 
