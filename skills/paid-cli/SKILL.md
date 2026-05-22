@@ -43,6 +43,7 @@ cat customer.json | npx @paid-ai/cli customer create --stdin
 
 1. **Signal bulk create needs nested customer** — Use `{ "signals": [{ "customer": { "externalCustomerId": "..." }, "event_name": "..." }] }`, not `{ "externalCustomerId": "..." }` at the top level. The API returns a cryptic "Invalid input" otherwise
 2. **Signals don't auto-create pricing** — Sending signals registers event names and auto-creates customers, but does not generate product attributes or pricing. Create products and pricing via `paid product create` first
+3. **Monetary amounts are in cents** — The API expects amounts in the smallest currency unit (e.g. cents for USD), so $10 must be passed as `1000`, not `10`
 
 ## Safety
 
