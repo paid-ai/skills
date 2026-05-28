@@ -1,6 +1,6 @@
 ---
 name: paid-cli
-description: "Use when working with Paid from an agent: Paid CLI, Paid API resources, products, pricing, customers, orders, checkouts, signals, tracing, Node.js, Next.js, Python, or SDK setup. Helps coding agents authenticate, inspect environments, discover command shape, implement checkout, instrument usage/cost signals, and avoid billing mistakes with npx @paid-ai/cli."
+description: "Use when working with Paid from an agent: Paid CLI, Paid API resources, products, pricing, customers, orders, checkouts, signals, tracing, direct cost traces, Node.js, Next.js, Python, or SDK setup. Helps coding agents authenticate, inspect environments, discover command shape, implement checkout, instrument usage/cost signals, submit direct cost and usage data, and avoid billing mistakes with npx @paid-ai/cli."
 ---
 
 # Paid CLI
@@ -11,6 +11,7 @@ Use this single Paid skill for CLI resource work and Paid integration setup. Pre
 
 - CLI/API resource work: stay in this file.
 - Signals and tracing setup: read `references/signals-and-tracing.md`.
+- Direct cost traces (non-OTel): read `references/cost-traces.md`.
 - Checkout setup: read `references/checkout.md`.
 - Paid skill packaging or installation updates: keep all Paid guidance inside this `paid-cli` directory. Do not recreate standalone `setup-paid-signals` or `setup-paid-checkout` skill packages; those workflows are consolidated as references under `paid-cli`.
 
