@@ -2,7 +2,7 @@
 
 **Always consult [docs.paid.ai](https://docs.paid.ai) for code examples and latest API.**
 
-Direct cost traces let you submit cost and usage data to Paid without OpenTelemetry instrumentation. Use this path when your cost data comes from sources that OTel autoinstrumentation cannot capture — pre-computed invoices, non-AI vendor costs, custom pricing models, or providers without OTel support.
+Direct cost traces submit cost and usage data to Paid without OpenTelemetry instrumentation. Use this path for pre-computed invoices, non-AI vendor costs, custom pricing models, or providers without OTel support.
 
 **Reference:** [Create Costs API](https://docs.paid.ai/api-reference/api-reference/costs/create-costs)
 
@@ -17,9 +17,9 @@ Direct cost traces let you submit cost and usage data to Paid without OpenTeleme
 | AI vendor/model supported by Paid's server-side pricing | Direct usage trace (`type: "usage"`) |
 | Custom HTTP-based AI provider without OTel support | Direct cost or usage trace |
 | Non-AI costs (compute, storage, third-party APIs) | Direct cost trace (`type: "cost"`) |
-| Hybrid — some calls are OTel-instrumented, some are not | Both: OTel tracing for supported SDKs, direct cost traces for the rest |
+| Hybrid — some calls instrumented, some not | Both: OTel for supported SDKs, direct traces for the rest |
 
-Direct cost traces and OTel-backed traces can coexist on the same customer and product. Paid aggregates them together for billing and analytics.
+Direct cost traces and OTel-backed traces coexist on the same customer and product. Paid aggregates them together for billing and analytics.
 
 ---
 
@@ -27,17 +27,11 @@ Direct cost traces and OTel-backed traces can coexist on the same customer and p
 
 **Endpoint:** `POST https://api.agentpaid.io/api/v2/costs/bulk`
 
-Ingests a batch of cost records. The batch is all-or-nothing: if any record fails validation, the entire request is rejected with a 400 and nothing is persisted.
+Ingests a batch of cost records. All-or-nothing: if any record fails validation, the entire request is rejected with a 400 and nothing is persisted.
 
-### Authentication
+**Auth:** Bearer token via `Authorization` header. Use your `PAID_API_KEY`.
 
-Bearer token via the `Authorization` header. Use your `PAID_API_KEY`.
-
-### Two Record Types
-
-The `costs` array accepts two record variants, distinguished by the `type` discriminator field:
-
-#### `type: "cost"` — Pre-computed Cost
+### `type: "cost"` — Pre-computed Cost
 
 You supply the final amount and currency. Paid records it as-is.
 
@@ -53,9 +47,9 @@ You supply the final amount and currency. Paid records it as-is.
 | `timestamp` | string | No | RFC 3339 datetime. Defaults to server receive time |
 | `metadata` | object | No | Free-form key-value pairs for filtering and analytics |
 
-#### `type: "usage"` — Token Usage (Server-Side Priced)
+### `type: "usage"` — Token Usage (Server-Side Priced)
 
-You supply vendor, model, and token counts. Paid looks up pricing and computes the cost server-side.
+You supply vendor, model, and token counts. Paid looks up pricing and computes the cost.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -69,9 +63,9 @@ You supply vendor, model, and token counts. Paid looks up pricing and computes t
 | `timestamp` | string | No | RFC 3339 datetime. Defaults to server receive time |
 | `metadata` | object | No | Free-form key-value pairs for filtering and analytics |
 
-#### Token Usage Fields
+### Token Usage Fields
 
-All fields in the `usage` object are optional integers — include whichever your provider reports:
+All fields optional integers — include whichever your provider reports:
 
 | Field | Description |
 |-------|-------------|
@@ -86,32 +80,27 @@ All fields in the `usage` object are optional integers — include whichever you
 **200 OK:**
 
 ```json
-{
-  "ingested": 3,
-  "duplicates": 0
-}
+{ "ingested": 3, "duplicates": 0 }
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `ingested` | integer | Number of records persisted |
-| `duplicates` | integer | Records skipped due to matching `idempotencyKey` |
+- `ingested` — number of records persisted
+- `duplicates` — records skipped due to matching `idempotencyKey`
 
-**400 Bad Request** — validation failure; entire batch rejected, nothing persisted. See [Validation Errors](#validation-errors).
-
-**403 Forbidden** — invalid or missing API key.
+**400** — validation failure; entire batch rejected. See [Validation Errors](#validation-errors).
+**403** — invalid or missing API key.
 
 ---
 
 ## SDK Examples
 
-### TypeScript — Pre-computed Cost
+### TypeScript
 
 ```typescript
 import { PaidClient } from "@paid-ai/paid-node";
 
 const client = new PaidClient({ token: process.env.PAID_API_KEY! });
 
+// Mixed batch: pre-computed cost + server-side priced usage
 await client.costs.createCosts({
   costs: [
     {
@@ -123,15 +112,6 @@ await client.costs.createCosts({
       vendor: "anthropic",
       model: "claude-sonnet-4-5",
     },
-  ],
-});
-```
-
-### TypeScript — Token Usage (Server-Side Priced)
-
-```typescript
-await client.costs.createCosts({
-  costs: [
     {
       type: "usage",
       customer: { externalCustomerId: "cust-123" },
@@ -141,32 +121,6 @@ await client.costs.createCosts({
       usage: {
         inputTokens: 1200,
         outputTokens: 350,
-      },
-    },
-  ],
-});
-```
-
-### TypeScript — Mixed Batch
-
-```typescript
-await client.costs.createCosts({
-  costs: [
-    {
-      type: "cost",
-      customer: { externalCustomerId: "cust-123" },
-      amount: 0.05,
-      currency: "USD",
-      vendor: "custom-search",
-    },
-    {
-      type: "usage",
-      customer: { externalCustomerId: "cust-123" },
-      vendor: "anthropic",
-      model: "claude-sonnet-4-5",
-      usage: {
-        inputTokens: 800,
-        outputTokens: 200,
         cacheReadInputTokens: 5000,
       },
     },
@@ -174,47 +128,35 @@ await client.costs.createCosts({
 });
 ```
 
-### Python — Pre-computed Cost
+### Python
 
 ```python
-from paid import Paid, Cost_Cost, CustomerByExternalId
+from paid import Paid, Cost_Cost, Cost_Usage, CustomerByExternalId, TokenUsage
+import os
 
 client = Paid(token=os.environ["PAID_API_KEY"])
 
+# Pre-computed cost
 client.costs.create_costs(
     costs=[
         Cost_Cost(
             amount=2.5,
             currency="USD",
-            customer=CustomerByExternalId(
-                external_customer_id="cust-123",
-            ),
+            customer=CustomerByExternalId(external_customer_id="cust-123"),
             vendor="anthropic",
             model="claude-sonnet-4-5",
         ),
     ],
 )
-```
 
-### Python — Token Usage (Server-Side Priced)
-
-```python
-from paid import Paid, Cost_Usage, CustomerByExternalId, TokenUsage
-
-client = Paid(token=os.environ["PAID_API_KEY"])
-
+# Server-side priced usage
 client.costs.create_costs(
     costs=[
         Cost_Usage(
-            customer=CustomerByExternalId(
-                external_customer_id="cust-123",
-            ),
+            customer=CustomerByExternalId(external_customer_id="cust-123"),
             vendor="openai",
             model="gpt-4o-2024-08-06",
-            usage=TokenUsage(
-                input_tokens=1200,
-                output_tokens=350,
-            ),
+            usage=TokenUsage(input_tokens=1200, output_tokens=350),
         ),
     ],
 )
@@ -224,34 +166,28 @@ client.costs.create_costs(
 
 ## CLI Onboarding for Cost Traces
 
-Direct cost traces are a non-OTel signal — they bypass the `initializeTracing` / `paidAutoInstrument` pipeline entirely. The CLI onboarding flow must detect when a project needs direct cost traces and wire the setup separately from OTel instrumentation.
+Direct cost traces bypass the `initializeTracing` / `paidAutoInstrument` pipeline entirely. The CLI onboarding flow must detect when a project needs them and wire setup separately from OTel instrumentation.
 
 ### Discovery: When Does a Project Need Direct Cost Traces?
 
-A project needs direct cost traces when any of the following are true:
-
 | Signal | Indicator |
 |--------|-----------|
-| AI provider not in the autoinstrumentation table | Custom HTTP providers, self-hosted models, or unsupported SDKs |
+| AI provider not in the autoinstrumentation table | Custom HTTP providers, self-hosted models, unsupported SDKs |
 | Non-AI costs to track | Compute, storage, third-party API calls, SaaS fees |
 | Pre-computed costs from external systems | Invoices, billing APIs, marketplace fees |
-| User explicitly requests cost trace setup | CLI prompt or `--signal-type cost-trace` flag |
+| User explicitly requests it | CLI prompt or `--signal-type cost-trace` flag |
 
-### CLI Onboarding Flow
+### Onboarding Flow
 
-The CLI should present cost traces as a signal type alongside OTel tracing during `npx @paid-ai/cli init` or a dedicated setup command:
+During `npx @paid-ai/cli init` or a dedicated setup command:
 
 1. **Detect environment** — same detection as OTel setup (language, framework, package manager, AI SDK).
-2. **Identify signal requirements** — check if the detected AI SDKs are all covered by autoinstrumentation. If any are not, or if the user declares non-AI costs, flag direct cost traces as needed.
-3. **Prompt for signal type** — when the project needs both OTel and direct cost traces, present them as complementary:
-   - OTel tracing: for supported AI SDKs (automatic cost capture)
-   - Direct cost traces: for unsupported providers or non-AI costs (explicit API calls)
-4. **Generate integration code** — produce the `client.costs.createCosts()` call with the correct record type (`cost` or `usage`) based on what the user is tracking.
-5. **Validate configuration** — confirm API key is set and test the endpoint with a dry-run or minimal batch.
+2. **Identify signal requirements** — check if detected AI SDKs are all covered by autoinstrumentation. If any are not, or user declares non-AI costs, flag direct cost traces as needed.
+3. **Prompt for signal type** — present OTel tracing and direct cost traces as complementary options.
+4. **Generate integration code** — produce the `client.costs.createCosts()` call with the correct record type.
+5. **Validate configuration** — confirm API key is set and test the endpoint.
 
-### Non-OTel Signal Types
-
-Direct cost traces are the first non-OTel signal type. The CLI should be designed to accommodate future non-OTel signals. Current signal capability matrix:
+### Signal Capability Matrix
 
 | Signal Type | Transport | CLI Support |
 |-------------|-----------|-------------|
@@ -266,20 +202,20 @@ Future non-OTel signal types (e.g. outcome events, SLA metrics) should follow th
 
 ## Validation Errors
 
-The batch is all-or-nothing. Common validation errors and what they mean:
+The batch is all-or-nothing. Common errors:
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| `type` is required | Missing `type` discriminator on a cost record | Add `type: "cost"` or `type: "usage"` to every record |
-| `customer` is required | No customer attribution on a record | Add `{ customerId }` or `{ externalCustomerId }` |
-| `amount` and `currency` are required | `type: "cost"` record missing amount or currency | Supply both `amount` (number) and `currency` (ISO 4217 string) |
-| `vendor` and `model` are required | `type: "usage"` record missing vendor or model | Supply `vendor` (e.g. `"openai"`) and `model` (e.g. `"gpt-4o-2024-08-06"`) |
-| `usage` is required | `type: "usage"` record missing the usage object | Add `usage: { inputTokens, outputTokens, ... }` |
-| Unknown vendor/model | Paid cannot look up pricing for the given vendor+model pair | Use `type: "cost"` with a pre-computed amount, or add a `costOverride` to the usage record |
-| Invalid currency | `currency` is not a recognized ISO 4217 code | Use a valid code like `"USD"`, `"EUR"`, `"GBP"` |
-| Invalid timestamp | `timestamp` is not valid RFC 3339 | Use format like `"2026-05-28T12:00:00Z"` |
+| `type` is required | Missing discriminator | Add `type: "cost"` or `type: "usage"` to every record |
+| `customer` is required | No customer attribution | Add `{ customerId }` or `{ externalCustomerId }` |
+| `amount`/`currency` required | `type: "cost"` missing amount or currency | Supply both fields |
+| `vendor`/`model` required | `type: "usage"` missing vendor or model | Supply both fields |
+| `usage` is required | `type: "usage"` missing usage object | Add `usage: { inputTokens, outputTokens, ... }` |
+| Unknown vendor/model | Paid can't look up pricing | Use `type: "cost"` instead, or add `costOverride` |
+| Invalid currency | Not a recognized ISO 4217 code | Use `"USD"`, `"EUR"`, `"GBP"`, etc. |
+| Invalid timestamp | Not valid RFC 3339 | Use `"2026-05-28T12:00:00Z"` format |
 
-When the CLI detects a 400 response, it should parse the error body and surface the `error`, `code`, and `details` fields to the user with actionable guidance.
+The CLI should parse 400 error bodies and surface the `error`, `code`, and `details` fields with actionable guidance.
 
 ---
 
@@ -287,29 +223,23 @@ When the CLI detects a 400 response, it should parse the error body and surface 
 
 ### Alongside OTel Tracing
 
-When a project uses both OTel-instrumented AI calls and direct cost traces, keep them separate. OTel handles the instrumented calls; direct cost traces handle everything else.
+OTel handles instrumented AI calls; direct cost traces handle everything else. Both coexist.
 
 ```typescript
 import { initializeTracing, paidAutoInstrument, trace, signal } from "@paid-ai/paid-node";
 import { PaidClient } from "@paid-ai/paid-node";
 
-// OTel path — instrumented AI calls
 initializeTracing(process.env.PAID_API_KEY!);
 paidAutoInstrument();
-
-// Direct cost trace path — non-OTel costs
 const client = new PaidClient({ token: process.env.PAID_API_KEY! });
 
-// OTel-instrumented call
-await trace({
-  externalCustomerId: "cust-123",
-  externalProductId: "my-agent",
-}, async () => {
+// OTel-instrumented AI call
+await trace({ externalCustomerId: "cust-123", externalProductId: "my-agent" }, async () => {
   const response = await openai.chat.completions.create({ ... });
   signal("chat_completion", true);
 });
 
-// Direct cost trace for a non-OTel cost (e.g. external search API)
+// Direct cost trace for a non-OTel cost
 await client.costs.createCosts({
   costs: [{
     type: "cost",
@@ -318,76 +248,42 @@ await client.costs.createCosts({
     amount: 0.02,
     currency: "USD",
     vendor: "serp-api",
-    metadata: { query: "market research" },
   }],
 });
 ```
 
 ### Standalone (No OTel)
 
-When the project does not use any OTel-supported AI SDK, skip the tracing setup entirely and use direct cost traces for everything.
+Skip tracing setup entirely — use direct cost traces for all cost reporting.
 
 ```typescript
 import { PaidClient } from "@paid-ai/paid-node";
-
 const client = new PaidClient({ token: process.env.PAID_API_KEY! });
 
-// After each billable operation, submit the cost
 async function handleRequest(customerId: string) {
   const result = await callCustomModel(input);
-
   await client.costs.createCosts({
     costs: [{
       type: "usage",
       customer: { externalCustomerId: customerId },
       vendor: "anthropic",
       model: "claude-sonnet-4-5",
-      usage: {
-        inputTokens: result.usage.input_tokens,
-        outputTokens: result.usage.output_tokens,
-      },
+      usage: { inputTokens: result.usage.input_tokens, outputTokens: result.usage.output_tokens },
     }],
   });
 }
 ```
 
-```python
-from paid import Paid, Cost_Usage, CustomerByExternalId, TokenUsage
-
-client = Paid(token=os.environ["PAID_API_KEY"])
-
-def handle_request(customer_id: str):
-    result = call_custom_model(input)
-
-    client.costs.create_costs(
-        costs=[
-            Cost_Usage(
-                customer=CustomerByExternalId(
-                    external_customer_id=customer_id,
-                ),
-                vendor="anthropic",
-                model="claude-sonnet-4-5",
-                usage=TokenUsage(
-                    input_tokens=result.usage.input_tokens,
-                    output_tokens=result.usage.output_tokens,
-                ),
-            ),
-        ],
-    )
-```
-
 ### Batching
 
-For high-throughput applications, accumulate records and submit in batches rather than one-at-a-time. The endpoint accepts multiple records per request.
+For high-throughput applications, accumulate records and submit in batches.
 
 ```typescript
 const costBuffer: Array<Cost> = [];
 
 function recordCost(cost: Cost) {
   costBuffer.push(cost);
-  if (costBuffer.length >= 50) {
-    flushCosts();
-  }
+  if (costBuffer.length >= 50) flushCosts();
 }
 
 async function flushCosts() {
@@ -401,30 +297,30 @@ async function flushCosts() {
 
 ## Common Gotchas
 
-1. **Amounts are in major units** — Unlike the signals API (which uses cents), the costs API uses major currency units. `amount: 2.5` means $2.50, not $0.025
-2. **Batch is all-or-nothing** — If one record in the batch fails validation, the entire batch is rejected and nothing is persisted. Validate records before submitting
-3. **`type` discriminator is mandatory** — Every record must include `type: "cost"` or `type: "usage"`. Omitting it causes a 400
-4. **Customer attribution is required** — Every record needs a `customer` object with either `customerId` or `externalCustomerId`
-5. **Usage records need vendor + model** — `type: "usage"` requires `vendor` and `model` for server-side pricing lookup. If Paid doesn't recognize the pair, the batch fails — use `type: "cost"` with a pre-computed amount instead, or add a `costOverride`
-6. **Product is optional but recommended** — Omitting `product` means the cost is attributed to the customer but not to a specific product, which limits billing granularity
-7. **No OTel setup required** — Direct cost traces do not need `initializeTracing()` or `paidAutoInstrument()`. They use the REST client directly
-8. **Coexists with OTel** — Direct cost traces and OTel-backed traces aggregate together per customer/product. Use both when needed
-9. **Use the latest SDK version** — Always install the latest version of `@paid-ai/paid-node` or `paid-python` to avoid missing features or bug fixes
-10. **Timestamps are optional** — If omitted, the server uses receive time. Supply `timestamp` when backfilling or when the cost event occurred earlier than submission
+1. **Amounts are in major units** — The costs API uses dollars, not cents. `amount: 2.5` means $2.50
+2. **Batch is all-or-nothing** — One invalid record rejects the entire batch
+3. **`type` discriminator is mandatory** — Every record must include `type: "cost"` or `type: "usage"`
+4. **Customer attribution is required** — Every record needs `{ customerId }` or `{ externalCustomerId }`
+5. **Usage records need vendor + model** — If Paid doesn't recognize the pair, the batch fails. Use `type: "cost"` or add `costOverride`
+6. **Product is optional but recommended** — Omitting it limits billing granularity
+7. **No OTel setup required** — Direct cost traces use the REST client, not `initializeTracing()` / `paidAutoInstrument()`
+8. **Coexists with OTel** — Both trace types aggregate together per customer/product
+9. **Use the latest SDK version** — Always install the latest `@paid-ai/paid-node` or `paid-python`
+10. **Timestamps are optional** — Defaults to server receive time. Supply when backfilling historical data
 
 ---
 
 ## Deferred / Unsupported Signal Types
 
-The following non-OTel signal types are not yet supported by the costs endpoint. They are documented here so the CLI can surface clear errors if a user attempts to configure them:
+Not yet supported by the costs endpoint — documented so the CLI can surface clear errors:
 
-| Signal Type | Status | Notes |
-|-------------|--------|-------|
-| Outcome events (success/failure tracking) | Deferred | Use `signal()` with metadata as a workaround |
-| SLA / latency metrics | Deferred | Track via `metadata` on cost records for now |
-| Revenue attribution (margin tracking) | Deferred | Use pre-computed `type: "cost"` records with margin metadata |
+| Signal Type | Status | Workaround |
+|-------------|--------|------------|
+| Outcome events (success/failure) | Deferred | Use `signal()` with metadata |
+| SLA / latency metrics | Deferred | Track via `metadata` on cost records |
+| Revenue attribution (margins) | Deferred | Use `type: "cost"` with margin metadata |
 
-If the CLI encounters a signal type that is not supported, it should return a clear error:
+Expected CLI error for unsupported types:
 
 ```
 Error: Signal type "outcome" is not supported by the costs endpoint.
