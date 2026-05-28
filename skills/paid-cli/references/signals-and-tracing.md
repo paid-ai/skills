@@ -1,8 +1,3 @@
----
-name: setup-paid-signals
-description: Skill for setting up Paid signals and tracing — autoinstrumentation, manual tracing, and framework-specific setup for Node.js, Next.js, and Python.
----
-
 # Paid Signals & Tracing Guide
 
 **Always consult [docs.paid.ai](https://docs.paid.ai) for code examples and latest API.**
@@ -14,7 +9,7 @@ Paid is the all-in-one business engine for AI agents — handling usage-based pr
 ## Quick Reference
 
 ### Environment Variables
-- `PAID_API_KEY` - API key (required). Run `paid init` to authenticate and store locally
+- `PAID_API_KEY` - API key (required). Run `npx @paid-ai/cli init` to authenticate and store locally
 
 ### Installation
 ```bash
@@ -37,7 +32,7 @@ pip install paid-python            # Python
 
 | Option | Notes |
 |--------|-------|
-| `PAID_API_KEY` | Required. Run `paid init` to authenticate |
+| `PAID_API_KEY` | Required. Run `npx @paid-ai/cli init` to authenticate |
 
 ---
 
@@ -293,53 +288,53 @@ def run_agent(user_input: str):
 
 ## CLI Commands
 
-The Paid CLI handles authentication, resource creation, and validation. This skill is installed via the CLI (`paid init --install-agent-skill`).
+The Paid CLI handles authentication, resource creation, and validation. Prefer `npx @paid-ai/cli` unless the project already provides the `paid` binary.
 
 ### Authentication
 
 ```bash
-paid init                         # Authenticate and store API key
-paid init --env-type Sandbox      # Authenticate against sandbox
-paid env                          # Show active environment profile
-paid env switch production        # Switch to production profile
+npx @paid-ai/cli init                         # Authenticate and store API key
+npx @paid-ai/cli init --env-type Sandbox      # Authenticate against sandbox
+npx @paid-ai/cli env                          # Show active environment profile
+npx @paid-ai/cli env switch production        # Switch to production profile
 ```
 
 ### Products
 
 ```bash
-paid product create name="My AI Agent"                    # Create product
-paid product list                                         # List all products
-paid product get-external --external-id <PRODUCT_ID>      # Get by external ID
-paid product update-external --external-id <PRODUCT_ID> name="New Name"
+npx @paid-ai/cli product create name="My AI Agent"                    # Create product
+npx @paid-ai/cli product list                                         # List all products
+npx @paid-ai/cli product get-external --external-id <PRODUCT_ID>      # Get by external ID
+npx @paid-ai/cli product update-external --external-id <PRODUCT_ID> name="New Name"
 ```
 
 ### Customers
 
 ```bash
-paid customer create name="Acme Corp" external_id="acme-123"   # Create customer
-paid customer list                                              # List all customers
-paid customer get-external --external-id <CUSTOMER_ID>          # Get by external ID
+npx @paid-ai/cli customer create name="Acme Corp" external_id="acme-123"   # Create customer
+npx @paid-ai/cli customer list                                              # List all customers
+npx @paid-ai/cli customer get-external --external-id <CUSTOMER_ID>          # Get by external ID
 ```
 
 ### Signals
 
 ```bash
-paid signal create-bulk '{"signals": [{"event_name": "chat_completion", "customer": {"externalCustomerId": "cust-123"}}, {"event_name": "web_search", "customer": {"externalCustomerId": "cust-123"}}]}'
+npx @paid-ai/cli signal create-bulk '{"signals": [{"event_name": "chat_completion", "customer": {"externalCustomerId": "cust-123"}}, {"event_name": "web_search", "customer": {"externalCustomerId": "cust-123"}}]}'
 ```
 
 ### Pricing
 
 ```bash
-paid pricing list --product-id <PRODUCT_ID>               # List pricing for product
-paid pricing update --product-id <PRODUCT_ID> '{"attribute": "usage", ...}'
+npx @paid-ai/cli pricing list --product-id <PRODUCT_ID>               # List pricing for product
+npx @paid-ai/cli pricing update --product-id <PRODUCT_ID> '{"attribute": "usage", ...}'
 ```
 
 ### Orders & Validation
 
 ```bash
-paid order list                                           # List orders (verify billing)
-paid order get --id <ORDER_ID>                            # Get order details
-paid checkout list                                        # List checkouts
+npx @paid-ai/cli order list                                           # List orders (verify billing)
+npx @paid-ai/cli order get --id <ORDER_ID>                            # Get order details
+npx @paid-ai/cli checkout list                                        # List checkouts
 ```
 
 All commands accept `--file <path>` to read JSON body from a file or `--stdin` to pipe JSON.
@@ -376,7 +371,7 @@ All commands accept `--file <path>` to read JSON body from a file or `--stdin` t
 4. **Initialize first** — `initializeTracing()` must run before `paidAutoInstrument()` and before any AI client is created
 5. **Signal after success** — Only send signals after the work completes successfully
 6. **Signals always required** — Autoinstrumentation handles cost tracing; signals handle billable events. Both are needed
-7. **Never ask for API key** — Direct users to run `paid init` or add to `.env`
+7. **Never ask for API key** — Direct users to run `npx @paid-ai/cli init` or add to `.env`
 8. **Idempotent customers** — Customers are idempotent by External ID
 9. **Vercel AI SDK** — Pass `experimental_telemetry: { isEnabled: true }` for cost data
 10. **Python threading** — Call `initialize_tracing()` from the main thread first
@@ -390,4 +385,4 @@ All commands accept `--file <path>` to read JSON body from a file or `--stdin` t
 
 - [Dashboard](https://app.paid.ai)
 - [Docs](https://docs.paid.ai)
-- CLI Help: `paid help [command]`
+- CLI Help: `npx @paid-ai/cli --help` and `npx @paid-ai/cli <resource> --help`
