@@ -13,7 +13,6 @@ Use this single Paid skill for CLI resource work and Paid integration setup. Pre
 - Signals and tracing setup: read `references/signals-and-tracing.md`.
 - Direct cost traces (non-OTel): read `references/cost-traces.md`.
 - Checkout setup: read `references/checkout.md`.
-- Paid skill packaging or installation updates: keep all Paid guidance inside this `paid-cli` directory. Do not recreate standalone `setup-paid-signals` or `setup-paid-checkout` skill packages; those workflows are consolidated as references under `paid-cli`.
 
 ## CLI Workflow
 
