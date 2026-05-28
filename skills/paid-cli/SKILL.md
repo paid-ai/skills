@@ -1,6 +1,6 @@
 ---
 name: paid-cli
-description: Use when working with Paid from an agent: Paid CLI, Paid API resources, products, pricing, customers, orders, checkouts, signals, tracing, Node.js, Next.js, Python, or SDK setup. Helps coding agents authenticate, inspect environments, discover command shape, implement checkout, instrument usage/cost signals, and avoid billing mistakes with npx @paid-ai/cli.
+description: "Use when working with Paid from an agent: Paid CLI, Paid API resources, products, pricing, customers, orders, checkouts, signals, tracing, Node.js, Next.js, Python, or SDK setup. Helps coding agents authenticate, inspect environments, discover command shape, implement checkout, instrument usage/cost signals, and avoid billing mistakes with npx @paid-ai/cli."
 ---
 
 # Paid CLI
