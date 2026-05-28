@@ -1,27 +1,25 @@
-# Paid Agent Skills
+# Paid Agent Skill
 
-Agent skills for working with Paid from coding agents such as Claude Code, Codex, Cursor, and others.
+A consolidated agent skill for working with Paid from coding agents such as Claude Code, Codex, Cursor, and others.
 
 ## Install
 
-Install a skill with:
+Install the Paid skill with:
 
 ```bash
 npx skills add paid-ai/skills --skill paid-cli
-npx skills add paid-ai/skills --skill setup-paid-signals
-npx skills add paid-ai/skills --skill setup-paid-checkout
 ```
 
 To install files instead of symlinks:
 
 ```bash
 npx skills add paid-ai/skills --skill paid-cli --copy
-npx skills add paid-ai/skills --skill setup-paid-signals --copy
-npx skills add paid-ai/skills --skill setup-paid-checkout --copy
 ```
 
-## Skills
+## Skill
 
-- `paid-cli`: Helps agents use `npx @paid-ai/cli` safely, inspect environments, and discover commands.
-- `setup-paid-signals`: Sets up Paid signals and tracing — autoinstrumentation, manual tracing, and framework-specific setup for Node.js, Next.js, and Python.
-- `setup-paid-checkout`: Sets up Paid checkout — create sessions, handle payment returns, identify customers, and configure checkout options.
+- `paid-cli`: Helps agents use `npx @paid-ai/cli` safely, inspect environments, discover commands, set up Paid signals/tracing, and implement Paid checkout.
+
+## Migration
+
+Previous standalone Paid skills (`setup-paid-signals` and `setup-paid-checkout`) are now references inside `paid-cli`. Fresh installs and updates should install only `paid-cli`.

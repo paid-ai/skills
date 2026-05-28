@@ -1,8 +1,3 @@
----
-name: setup-paid-checkout
-description: Skill for setting up Paid checkout — create checkout sessions, handle payment returns, identify customers, and configure checkout options.
----
-
 # Paid Checkout Guide
 
 **Always consult [docs.paid.ai](https://docs.paid.ai) for code examples and latest API.**
@@ -283,7 +278,7 @@ checkout = client.checkouts.create_checkout(
 2. **Verify on return** — Always check `status === "completed"` AND `externalCustomerId` matches the authenticated user before provisioning access
 3. **One customer identifier** — Only one of `customerId` or `externalCustomerId` may be provided
 4. **Automatic upgrades** — Same API call handles new purchases and plan changes when using `externalCustomerId`
-5. **Never hardcode API keys** — Use environment variables or `paid init`
+5. **Never hardcode API keys** — Use environment variables or `npx @paid-ai/cli init`
 6. **`getCheckout` takes an object** — Pass `{ id: "chk_..." }`, not a bare string. In Python use `get_checkout(id=checkout_id)`
 7. **Use the latest SDK version** — Always install the latest version of `@paid-ai/paid-node` or `paid-python` to avoid missing features or bug fixes
 
@@ -293,4 +288,4 @@ checkout = client.checkouts.create_checkout(
 
 - [Dashboard](https://app.paid.ai)
 - [Docs](https://docs.paid.ai)
-- CLI Help: `paid help [command]`
+- CLI Help: `npx @paid-ai/cli --help` and `npx @paid-ai/cli <resource> --help`
