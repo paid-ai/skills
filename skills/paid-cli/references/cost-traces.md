@@ -226,7 +226,8 @@ The CLI should parse 400 error bodies and surface the `error`, `code`, and `deta
 OTel handles instrumented AI calls; direct cost traces handle everything else. Both coexist.
 
 ```typescript
-import { initializeTracing, paidAutoInstrument, trace, signal } from "@paid-ai/paid-node";
+import { initializeTracing, trace, signal } from "@paid-ai/paid-node/tracing";
+import { paidAutoInstrument } from "@paid-ai/paid-node/tracing/auto";
 import { PaidClient } from "@paid-ai/paid-node";
 
 initializeTracing(process.env.PAID_API_KEY!);
