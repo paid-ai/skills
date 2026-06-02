@@ -43,7 +43,8 @@ pip install paid-python            # Python
 Always follow this order for tracked actions:
 
 ```typescript
-import { initializeTracing, paidAutoInstrument, trace, signal } from "@paid-ai/paid-node";
+import { initializeTracing, trace, signal } from "@paid-ai/paid-node/tracing";
+import { paidAutoInstrument } from "@paid-ai/paid-node/tracing/auto";
 
 initializeTracing(process.env.PAID_API_KEY!);
 paidAutoInstrument();
@@ -74,7 +75,7 @@ def run_agent(user_input: str):
 Use when autoinstrumentation is not compatible:
 
 ```typescript
-import { initializeTracing, trace, signal } from "@paid-ai/paid-node";
+import { initializeTracing, trace, signal } from "@paid-ai/paid-node/tracing";
 
 initializeTracing(process.env.PAID_API_KEY!);
 
@@ -178,7 +179,8 @@ async with paid_tracing("<CUSTOMER_ID>", external_product_id="<PRODUCT_ID>"):
 
 ```typescript
 // paid.ts (create at project root)
-import { initializeTracing, paidAutoInstrument } from "@paid-ai/paid-node";
+import { initializeTracing } from "@paid-ai/paid-node/tracing";
+import { paidAutoInstrument } from "@paid-ai/paid-node/tracing/auto";
 
 initializeTracing(process.env.PAID_API_KEY!);
 paidAutoInstrument();
@@ -196,7 +198,8 @@ import OpenAI from "openai";
 Create CJS initialization wrapper (`src/paid-tracing.cjs`):
 
 ```javascript
-const { initializeTracing, paidAutoInstrument } = require("@paid-ai/paid-node");
+const { initializeTracing } = require("@paid-ai/paid-node/tracing");
+const { paidAutoInstrument } = require("@paid-ai/paid-node/tracing/auto");
 
 initializeTracing(process.env.PAID_API_KEY);
 paidAutoInstrument();
@@ -207,10 +210,10 @@ Create re-export wrapper (`src/lib/paid.ts`):
 ```typescript
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-const paid = require("@paid-ai/paid-node");
+const paid = require("@paid-ai/paid-node/tracing");
 
-export const trace: typeof import("@paid-ai/paid-node").trace = paid.trace;
-export const signal: typeof import("@paid-ai/paid-node").signal = paid.signal;
+export const trace: typeof import("@paid-ai/paid-node/tracing").trace = paid.trace;
+export const signal: typeof import("@paid-ai/paid-node/tracing").signal = paid.signal;
 ```
 
 Load in entry file:
